@@ -154,9 +154,6 @@ users <- clean.users.location(users)
 #      col = "#abcdef"
 # )
 
-
-
-
 number.of.users <- length(users$`User-ID`)
 
 # BOOKS =========================================
@@ -176,9 +173,8 @@ books <- clean.books.names(books)
 number.of.books <- length(books$ISBN)
 
 
-
-
 # RATINGS ==========================
+
 ratings <- dbGetQuery(db,
                     "SELECT * 
                     FROM `bx-book-ratings`;")
@@ -193,33 +189,59 @@ number.of.ratings <- length(ratings$ISBN)
 
 # count how many times each rating was given
 # the keys are the ratings, the values are the number of ratings
-ratings.count.by.user <- table(ratings$`Book-Rating`)
+ratings.count <- table(ratings$`Book-Rating`)
 
 # plot histogram of ratings.count
 barplot(
-     ratings.count.by.user,
-     names.arg = names(ratings.count.by.user),
+     ratings.count,
+     names.arg = names(ratings.count),
      col = "#abcdef"
 )
 
-# count how many books got each possible rating
-books.with.rating.1 <- length(ratings[ratings$`Book-Rating` == 1,]$ISBN)
-books.with.rating.2 <- length(ratings[ratings$`Book-Rating` == 2,]$ISBN)
-books.with.rating.3 <- length(ratings[ratings$`Book-Rating` == 3,]$ISBN)
-books.with.rating.4 <- length(ratings[ratings$`Book-Rating` == 4,]$ISBN)
-books.with.rating.5 <- length(ratings[ratings$`Book-Rating` == 5,]$ISBN)
-books.with.rating.6 <- length(ratings[ratings$`Book-Rating` == 6,]$ISBN)
-books.with.rating.7 <- length(ratings[ratings$`Book-Rating` == 7,]$ISBN)
-books.with.rating.8 <- length(ratings[ratings$`Book-Rating` == 8,]$ISBN)
-books.with.rating.9 <- length(ratings[ratings$`Book-Rating` == 9,]$ISBN)
-books.with.rating.10 <- length(ratings[ratings$`Book-Rating` == 10,]$ISBN)
+# count how many rating each user has given
+# the keys are the users, the values are the number of ratings
+ratings.count.by.user <- table(ratings$`User-ID`)
 
-# plot histogram of books.with.rating
-barplot(
-     c(books.with.rating.1, books.with.rating.2, books.with.rating.3, books.with.rating.4, books.with.rating.5, books.with.rating.6, books.with.rating.7, books.with.rating.8, books.with.rating.9, books.with.rating.10),
-     names.arg = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"),
-     col = "#abcdef"
+# sort the users by the number of ratings they have given
+ratings.count.by.user <- sort(ratings.count.by.user, decreasing = TRUE)
+
+# get the top 10 users
+top.10.users <- ratings.count.by.user[1:10]
+
+# plot histogram of ratings.count
+bp.users <- barplot(
+  # ratings.count.by.user
+  top.10.users,
+  names.arg = names(top.10.users),
+  las=2,
+  col = "#abcdef"
 )
+text(x = bp.users, y = top.10.users, labels = top.10.users, pos = 1)
 
+# count how many rating each book has received
+# the keys are the books, the values are the number of ratings
+ratings.count.by.book <- table(ratings$ISBN)
 
+# sort the books by the number of ratings they have received
+ratings.count.by.book <- sort(ratings.count.by.book, decreasing = TRUE)
 
+# get the top 10 books
+top.10.books <- ratings.count.by.book[1:10]
+
+top.10.books.names <- vector()
+
+# get the names of the books
+for (i in 1:10)
+{
+  top.10.books.names[i] <- books[books$ISBN == names(top.10.books)[i],]$`Book-Title`
+}
+
+# plot histogram of ratings.count
+bp.books <-  barplot(
+  # ratings.count.by.book,
+  top.10.books,
+  names.arg = top.10.books.names,
+  las=2,
+  col = "#abcdef",
+)
+text(x = bp.books, y = top.10.books, labels = top.10.books, pos = 1)
