@@ -245,3 +245,83 @@ bp.books <-  barplot(
   col = "#abcdef",
 )
 text(x = bp.books, y = top.10.books, labels = top.10.books, pos = 1)
+
+
+
+# .......................................................................................
+# create similarity matrix for all users (that rated books)
+#........................................................................................
+# we disconnect from the data-base because we want to get Maximum efficiency
+dbDisconnect(mydb)
+
+
+
+# get all users from the cleand data
+All_users.df <- fetch(users, n = -1)
+
+# get all ratings from the cleand data
+ratings.df <- unique(fetch(ratings, n = -1))
+
+# specify columns "User-ID" and "ISBN" to be factor
+
+ratings.df$"User-ID" <- as.factor(ratings.df$"User-ID")
+ratings.df$ISBN <- as.factor(ratings.df$ISBN)
+
+# Convert to realRatingMatrix - Formal class 'realRatingMatrix' 
+# realRatingMatrix - create proper struct for rating data  frame that can be 
+# essayer use.
+#For example - Recommender function get only realRatingMatrix 
+#r= Recommender(theRatingMatrix, method = “POPULAR”) to easily get the most recomended record
+
+ratings.matrix <- as(ratings.df, "realRatingMatrix")
+
+# split the data to train and test according to k-fold cross validation
+eval_sets <- evaluationScheme(
+  data = ratings.matrix, method = "split",
+  train = 0.8, given = 4,
+  goodRating = 6, k = 5
+)
+
+eval_recommender.UB <- Recommender(
+  data = getData(eval_sets, "train"),
+  method = "UBCF", parameter = list(method = "Euclidean", normalize="Z-score")
+)
+eval_recommender.UB@model$weighted <- FALSE
+eval_recommender.UB@model$nn <- 5
+model.UB <- eval_recommender.UB@model
+
+eval_recommender.IB <- Recommender(
+  data = getData(eval_sets, "train"),
+  method = "IBCF", parameter = list(method = "Euclidean", normalize="Z-score")
+)
+eval_recommender.IB@model$weighted <- FALSE
+eval_recommender.IB@model$nn <- 5
+model.IB <- eval_recommender.IB@model
+
+
+#//////////////////////////////////////////////////////////////
+
+R.UB <- predict(eval_recommender.UB,
+                newdata = getData(eval_sets, "known"),
+                n = 10,
+                type = "ratings"
+)
+
+R.UB.RECOMMEND <- predict(eval_recommender.UB,
+                          newdata = getData(eval_sets, "known"),
+                          n = 10,
+                          type = "topNList"
+)
+
+R.IB <- predict(eval_recommender.IB,
+                newdata = getData(eval_sets, "known"),
+                n = 10,
+                type = "ratings"
+)
+
+R.IB.RECOMMEND <- predict(eval_recommender.IB,
+                          newdata = getData(eval_sets, "known"),
+                          n = 10,
+                          type = "topNList"
+)
+
