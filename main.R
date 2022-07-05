@@ -252,28 +252,46 @@ text(x = bp.books, y = top.10.books, labels = top.10.books, pos = 1)
 # create similarity matrix for all users (that rated books)
 #........................................................................................
 # we disconnect from the data-base because we want to get Maximum efficiency
-dbDisconnect(mydb)
+#libraries
+
+remove.outliers.users <- function(ratings.df, min.ratings = 4) {
+  histo.users <- as.data.frame(table(ratings.df$"User-ID"))
+  freq <- histo.users$Freq
+  correct.users <- which(freq >= 4)
+  histo.users <- histo.users[correct.users, ]
+  correct.userid.index <- ratings.df$"User-ID" %in% histo.users$Var1
+  ratings.df[correct.userid.index, ]
+}
+
+ratings <- remove.outliers.users(ratings, min.ratings = 4)
 
 
+library(RMySQL)
+library(sqldf)
 
-# get all users from the cleand data
-All_users.df <- fetch(users, n = -1)
+library(recommenderlab)
+library(stringr)
+library(ggplot2)
+library(qpcR)
+dbDisconnect(db)
 
-# get all ratings from the cleand data
-ratings.df <- unique(fetch(ratings, n = -1))
+
 
 # specify columns "User-ID" and "ISBN" to be factor
 
-ratings.df$"User-ID" <- as.factor(ratings.df$"User-ID")
-ratings.df$ISBN <- as.factor(ratings.df$ISBN)
+ratings$"User-ID" <- as.factor(ratings$"User-ID")
+ratings$ISBN <- as.factor(ratings$ISBN)
+#ratings$"Book-" <- as.factor(ratings$ISBN)
+ratings$"Book-Rating" <- as.factor(ratings$"Book-Rating")
+
 
 # Convert to realRatingMatrix - Formal class 'realRatingMatrix' 
 # realRatingMatrix - create proper struct for rating data  frame that can be 
 # essayer use.
 #For example - Recommender function get only realRatingMatrix 
 #r= Recommender(theRatingMatrix, method = “POPULAR”) to easily get the most recomended record
+ratings.matrix <- as(ratings, "realRatingMatrix")
 
-ratings.matrix <- as(ratings.df, "realRatingMatrix")
 
 # split the data to train and test according to k-fold cross validation
 eval_sets <- evaluationScheme(
@@ -281,6 +299,7 @@ eval_sets <- evaluationScheme(
   train = 0.8, given = 4,
   goodRating = 6, k = 5
 )
+
 
 eval_recommender.UB <- Recommender(
   data = getData(eval_sets, "train"),
@@ -290,16 +309,6 @@ eval_recommender.UB@model$weighted <- FALSE
 eval_recommender.UB@model$nn <- 5
 model.UB <- eval_recommender.UB@model
 
-eval_recommender.IB <- Recommender(
-  data = getData(eval_sets, "train"),
-  method = "IBCF", parameter = list(method = "Euclidean", normalize="Z-score")
-)
-eval_recommender.IB@model$weighted <- FALSE
-eval_recommender.IB@model$nn <- 5
-model.IB <- eval_recommender.IB@model
-
-
-#//////////////////////////////////////////////////////////////
 
 R.UB <- predict(eval_recommender.UB,
                 newdata = getData(eval_sets, "known"),
@@ -313,15 +322,98 @@ R.UB.RECOMMEND <- predict(eval_recommender.UB,
                           type = "topNList"
 )
 
-R.IB <- predict(eval_recommender.IB,
-                newdata = getData(eval_sets, "known"),
-                n = 10,
-                type = "ratings"
+
+
+M <- round(R.UB@data[1:20, 1:8], digits = 1)
+colnames(M) <- sapply(colnames(M), function(c) trimws(substr(c, 1, 8)))
+
+rmse.ubcf <- calcPredictionAccuracy(
+  x = R.UB,
+  data = getData(eval_sets, "unknown"),
+  goodRating = 6,
+  byUser = TRUE
 )
 
-R.IB.RECOMMEND <- predict(eval_recommender.IB,
-                          newdata = getData(eval_sets, "known"),
-                          n = 10,
-                          type = "topNList"
-)
 
+
+total.RMSE.UBCF <- calcPredictionAccuracy(
+  x = R.UB,
+  data = getData(eval_sets, "unknown"),
+  goodRating = 6,
+  byUser = FALSE
+)["RMSE"]
+
+
+
+
+hist.data.frame <- function(rmse.df, max.rmse) {
+  bins <- seq(0, ceiling(max.rmse), by = 0.25)
+  ranges <- paste(head(bins, -1), bins[-1], sep = " - ")
+  freq <- hist(rmse.df, breaks = bins, include.lowest = TRUE, plot = TRUE)
+  freq
+  data.frame(range = ranges, frequency = freq$counts)
+}
+max.rmse <- max(c(rmse.ubcf[, "RMSE"]), na.rm=TRUE)
+ubcf.hist <- hist.data.frame(rmse.ubcf[, "RMSE"], max.rmse)
+hist.df <- data.frame(
+  N.UBCF = ubcf.hist[["frequency"]])
+
+
+predict.to.recommends <- function(R.RECOMMEND, head = 500) {
+  books.names <- lapply(R.RECOMMEND@itemLabels, function(x) books$"Book-Title"[match(x, books$ISBN)])
+  R.RECOMMEND@itemLabels <- substring(books.names, 1, 12)
+  recommends.ls <- as(R.RECOMMEND, "list")
+  recommends.df <- data.frame(
+    user = names(recommends.ls),
+    matrix(unlist(recommends.ls),
+           nrow = length(recommends.ls),
+           byrow = TRUE
+    ),
+    stringsAsFactors = FALSE
+  )
+  colnames(recommends.df)[2:11] <- paste("book", 1:10, sep = "")
+  recommends.df[1:head, ]
+}
+
+
+
+
+
+# Print to text file
+sink("result.txt")
+print("# Team: CYTAA")
+print("# Date: 10/07/2022")
+
+
+print("**********************************************************************")
+print("**********************************************************************")
+paste("RMSE of the full model UB", total.RMSE.UBCF)
+
+print("**********************************************************************")
+print("**********************************************************************")
+print("histogram of RMSE")
+hist.df
+
+print("**********************************************************************")
+print("**********************************************************************")
+print("Top-10 recommendations for 500 users")
+print("UBCF")
+predict.to.recommends(R.UB.RECOMMEND, 500)
+
+
+
+books.names <- lapply(R.UB.RECOMMEND@itemLabels, function(x) books$"Book-Title"[match(x, books$ISBN)])
+R.UB.RECOMMEND@itemLabels <- substring(books.names, 1, 12)
+recommends.ls <- as(R.UB.RECOMMEND, "list")
+recommends.df <- data.frame(
+  user = names(recommends.ls),
+  matrix(unlist(recommends.ls),
+         nrow = length(recommends.ls),
+         byrow = TRUE
+  ),
+  stringsAsFactors = FALSE
+)
+colnames(recommends.df)[2:10] <- paste("book", 1:10, sep = "")
+recommends.df[1:500, ]
+
+sink()
