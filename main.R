@@ -359,22 +359,6 @@ hist.df <- data.frame(
   N.UBCF = ubcf.hist[["frequency"]])
 
 
-predict.to.recommends <- function(R.RECOMMEND, head = 500) {
-  books.names <- lapply(R.RECOMMEND@itemLabels, function(x) books$"Book-Title"[match(x, books$ISBN)])
-  R.RECOMMEND@itemLabels <- substring(books.names, 1, 12)
-  recommends.ls <- as(R.RECOMMEND, "list")
-  recommends.df <- data.frame(
-    user = names(recommends.ls),
-    matrix(unlist(recommends.ls),
-           nrow = length(recommends.ls),
-           byrow = TRUE
-    ),
-    stringsAsFactors = FALSE
-  )
-  colnames(recommends.df)[2:11] <- paste("book", 1:10, sep = "")
-  recommends.df[1:head, ]
-}
-
 
 
 
@@ -398,7 +382,7 @@ print("**********************************************************************")
 print("**********************************************************************")
 print("Top-10 recommendations for 500 users")
 print("UBCF")
-predict.to.recommends(R.UB.RECOMMEND, 500)
+
 
 
 
