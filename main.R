@@ -312,13 +312,13 @@ model.UB <- eval_recommender.UB@model
 
 R.UB <- predict(eval_recommender.UB,
                 newdata = getData(eval_sets, "known"),
-                n = 10,
+                n = 11,
                 type = "ratings"
 )
 
 R.UB.RECOMMEND <- predict(eval_recommender.UB,
                           newdata = getData(eval_sets, "known"),
-                          n = 10,
+                          n = 11,
                           type = "topNList"
 )
 
@@ -364,7 +364,7 @@ hist.df <- data.frame(
 
 
 # Print to text file
-sink("result.txt")
+sink("RMSE")
 print("# Team: CYTAA")
 print("# Date: 10/07/2022")
 
@@ -378,10 +378,8 @@ print("**********************************************************************")
 print("histogram of RMSE")
 hist.df
 
-print("**********************************************************************")
-print("**********************************************************************")
-print("Top-10 recommendations for 500 users")
-print("UBCF")
+sink()
+
 
 
 
@@ -397,7 +395,7 @@ recommends.df <- data.frame(
   ),
   stringsAsFactors = FALSE
 )
-colnames(recommends.df)[2:10] <- paste("book", 1:10, sep = "")
-recommends.df[1:500, ]
+colnames(recommends.df)[2:11] <- paste("book", 1:10, sep = "")
 
-sink()
+# Print to csv file
+write.csv(recommends.df[1:500, ],"Top-10_recommendations_for_500_users.csv", row.names = FALSE)

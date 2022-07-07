@@ -1,0 +1,75 @@
+# Team: CYTAA
+# Date: 7/7/2022
+# Database name: MySql
+3.a) how many users?      87813
+3.b) how many books?      247545
+3.c) how many ratings?    67787
+
+3.d) histogram of user-ratings (how many users have rated N times?) 
++----------+---------------------+
+|rating_cnt|number_of_users_rated|
++----------+---------------------+
+|1         |256                   |
+|2         |471                   |
+|3         |919                   |
+|4         |1487                  |
+|5         |6447                  |
+|6         |6233                  |
+|7         |13136                 |
+|8         |16969                 |
+|9         |10607                 |
+|10        |11262                 |
++----------+---------------------+
+
+
+3.e) histogram of book-ratings (how many books have been rated N times?) <number>
++----------+--------------------+
+|rating_cnt|number_of_book_rated|
++----------+--------------------+
+|1         |131216              |
+|2         |43873               |
+|3         |20567               |
+|4         |11610               |
+|5         |7536                |
+|6         |5384                |
+|7         |3935                |
+|8         |2825                |
+|9         |2280                |
+|10        |1950                |
++----------+--------------------+
+
+
+
+3.f) top-10 rated books?    
++----------------------------------------------------------+----------+
+|Book-Title                                                |rating_cnt|
++----------------------------------------------------------+----------+
+|The Fellowship of the Ring (The Lord of the Rings, Part 1)|108       |
+|Harry Potter and the Prisoner of Azkaban (Book 3)         |428       |
+|Harry Potter and the Goblet of Fire (Book 4)              |387       |
+|The Little Prince                                         |141       |
+|Harry Potter and the Sorcerer's Stone (Book 1)            |278       |
+|Harry Potter and the Order of the Phoenix (Book 5)        |347       |
+|Ender's Game (Ender Wiggins Saga (Paperback))             |249       |
+|Harry Potter and the Chamber of Secrets (Book 2)          |556       |
+|The Perks of Being a Wallflower                           |104       |
+|JITTERBUG PERFUME                                         |136       |
++----------------------------------------------------------+----------+
+
+
+3.g) top-10 active users?   
++-------+----------+
+|User-ID|rating_cnt|
++-------+----------+
+|171118  |893      |
+|56399 |779        |
+|177485 |488       |
+|78973  |446       |
+|189334  |435      |
+|63714 |409        |
+|76626 |394        |
+|242006  |308      |
+|168245 |272       |
+|88677 |266        |
++-------+----------+
+
