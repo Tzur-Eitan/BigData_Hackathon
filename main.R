@@ -364,7 +364,7 @@ hist.df <- data.frame(
 
 
 # Print to text file
-sink("RMSE")
+sink("RMSE.txt")
 print("# Team: CYTAA")
 print("# Date: 10/07/2022")
 
