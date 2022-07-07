@@ -30,26 +30,26 @@ list.of.all.countries <- c('afghanistan', 'albania', 'algeria', 'andorra', 'ango
 # remove ratings where the user id is not in the users df
 clean.ratings.users <- function(ratings.df, users.df) 
 {
-     return(ratings.df[ratings.df$`User-ID` %in% users.df$`User-ID`,])
+  return(ratings.df[ratings.df$`User-ID` %in% users.df$`User-ID`,])
 }
 
 # remove ratings where the book ISBN is not in the books df
 clean.ratings.books <- function(ratings.df, books.df) 
 {
-     return(ratings.df[ratings.df$ISBN %in% books.df$ISBN,])
+  return(ratings.df[ratings.df$ISBN %in% books.df$ISBN,])
 }
 
 # remove ratings where the Book-Rating is 0
 clean.ratings.zero <- function(ratings.df) 
 {
-     return(ratings.df[ratings.df$`Book-Rating` > 0,])
+  return(ratings.df[ratings.df$`Book-Rating` > 0,])
 }
 
 # ======================== USERS ===========================
 # remove users from the users df if their age is under 10, over 100 or not a number
 clean.users.age <- function(users.df) 
 {
-     return(users.df[users.df$Age %in% c(10:100),])
+  return(users.df[users.df$Age %in% c(10:100),])
 }
 
 after.comma <- function(string)
@@ -62,12 +62,12 @@ clean.users.location <- function(users.df)
   users.df$Location <- lapply(users.df$Location, after.comma)
   users.df$Location <- as.character(users.df$Location)
   return(users.df[which(
-     # allow only A-Za-z and space
-     grepl("^[A-Za-z ]*$", users.df$Location) &
-     users.df$Location != "" &
-     users.df$Location != " " &
-     users.df$Location != "n/a" &
-     users.df$Location %in% list.of.all.countries,
+    # allow only A-Za-z and space
+    grepl("^[A-Za-z ]*$", users.df$Location) &
+      users.df$Location != "" &
+      users.df$Location != " " &
+      users.df$Location != "n/a" &
+      users.df$Location %in% list.of.all.countries,
   ),])
 }
 
@@ -106,13 +106,13 @@ clean.books.isbn <- function(books.df)
 # remove books with invalid names:
 clean.books.names <- function(books.df)
 {
-     return(books.df[which(
-     # allow A-Z, a-z, space, period, comma, hyphen, quotes, question mark, exclamation mark, @, (), [], {}, :
-     grepl("^[A-Za-z0-9_ .,-?'!%@()#]*$", books.df$`Book-Title`) &
-    books.df$`Book-Title` != "" &
-    books.df$`Book-Title` != " " &
-    books.df$`Book-Title` != "n/a"
-     ),])
+  return(books.df[which(
+    # allow A-Z, a-z, space, period, comma, hyphen, quotes, question mark, exclamation mark, @, (), [], {}, :
+    grepl("^[A-Za-z0-9_ .,-?'!%@()#]*$", books.df$`Book-Title`) &
+      books.df$`Book-Title` != "" &
+      books.df$`Book-Title` != " " &
+      books.df$`Book-Title` != "n/a"
+  ),])
 }
 
 
@@ -176,7 +176,7 @@ number.of.books <- length(books$ISBN)
 # RATINGS ==========================
 
 ratings <- dbGetQuery(db,
-                    "SELECT * 
+                      "SELECT * 
                     FROM `bx-book-ratings`;")
 
 ratings <- clean.ratings.zero(ratings)
@@ -193,9 +193,9 @@ ratings.count <- table(ratings$`Book-Rating`)
 
 # plot histogram of ratings.count
 barplot(
-     ratings.count,
-     names.arg = names(ratings.count),
-     col = "#abcdef"
+  ratings.count,
+  names.arg = names(ratings.count),
+  col = "#abcdef"
 )
 
 # count how many rating each user has given
@@ -399,3 +399,4 @@ colnames(recommends.df)[2:11] <- paste("book", 1:10, sep = "")
 
 # Print to csv file
 write.csv(recommends.df[1:500, ],"Top-10_recommendations_for_500_users.csv", row.names = FALSE)
+
